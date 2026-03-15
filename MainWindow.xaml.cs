@@ -10,7 +10,6 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Diagnostics;
 using System.Windows.Threading;
-using Microsoft.Win32;
 using System.Management;
 
 namespace TaskManager;
@@ -26,7 +25,12 @@ public partial class MainWindow : Window
         InitializeComponent();
         const sbyte REFRESH_RATE = 1;
         GetCpuName();
-        GetCpuSpeed();
+        GetCpuCurrentSpeed();
+        GetCpuMaxSpeed();
+        GetCpuSocket();
+        GetCpuCores();
+        GetCpuLogicalCores();
+        GetCpuVirtualizationState();
 
         DispatcherTimer timer = new()
         {
@@ -35,6 +39,8 @@ public partial class MainWindow : Window
         timer.Tick += GetProcessFromSystem!;
         timer.Tick += GetCpuPercentage!;
         timer.Start();
+
+
 
     }
 
@@ -68,20 +74,68 @@ public partial class MainWindow : Window
         CpuPercentage.Text = percentage.ToString() + '%';
     }
 
-    public void GetCpuName()
+    public string GetCpuInfo(string property)
     {
         ManagementObjectSearcher searcher = new("SELECT * FROM Win32_Processor");
         ManagementObjectCollection cpuCollection = searcher.Get();
 
+        string s = "";
+
         foreach (ManagementObject mo in cpuCollection.Cast<ManagementObject>())
         {
-            CpuName.Text = mo["Name"].ToString();
+            s = mo[property].ToString()!;
         }
+
+        return s;
     }
 
-    public void GetCpuSpeed()
+
+    public void GetCpuName()
     {
-        string rk = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0")!.GetValue("~MHz")!.ToString()!;
-        CpuSpeed.Text = rk + " " + "Mhz";
+        CpuName.Text = GetCpuInfo("Name");
+    }
+
+    public void GetCpuCurrentSpeed()
+    {
+
+        CpuSpeed.Text = GetCpuInfo("CurrentClockSpeed") + " " + "MHz";
+
+    }
+
+
+    public void GetCpuMaxSpeed()
+    {
+        float temp = float.Parse(GetCpuInfo("MaxClockSpeed")) / 1000;
+        BaseSpeedText.Text = temp.ToString() + " " + "GHz";
+    }
+
+    public void GetCpuSocket()
+    {
+        SocketsText.Text = GetCpuInfo("SocketDesignation");
+    }
+
+    public void GetCpuCores()
+    {
+        CoresText.Text = GetCpuInfo("NumberOfCores");
+    }
+
+    public void GetCpuLogicalCores()
+    {
+        LogicalProcText.Text = GetCpuInfo("NumberOfLogicalProcessors");
+    }
+
+    public void GetCpuVirtualizationState()
+    {
+        string virtualization = GetCpuInfo("VirtualizationFirmwareEnabled");
+
+        if (virtualization == "True")
+        {
+            VirtualizationText.Text = "Enabled";
+        }
+        else
+        {
+            VirtualizationText.Text = "Disabled";
+        }
     }
 }
+
