@@ -1,0 +1,60 @@
+﻿<Window x:Class="TaskManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TaskManager"
+        mc:Ignorable="d"
+        Title="MainWindow"
+        Height="450"
+        Width="800">
+    <Grid>
+
+        <TabControl>
+
+            <TabItem Header="Process">
+                <DataGrid x:Name="ProcessGrid"
+                          AutoGenerateColumns="False">
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Process Name"
+                                            Binding="{Binding ProcessName}"/>
+                        <DataGridTextColumn Header="PID"
+                                            Binding="{Binding Id}"/>
+                        <DataGridTextColumn Header="RAM Usage"
+                                            Binding="{Binding WorkingSet64}"/>
+                        <DataGridTemplateColumn Header="Action">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Kill"
+                                            Click="KillButton"
+                                            Background="DarkRed"
+                                            Foreground="White"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+            </TabItem>
+
+            <TabItem Header="Performance">
+
+                <TabControl>
+                    <TabItem Header="CPU">
+
+                        <StackPanel>
+                            <HeaderedContentControl>CPU</HeaderedContentControl>
+                            <TextBlock x:Name="CpuName"/>
+                            <TextBlock x:Name="CpuPercentage"/>
+                            <TextBlock x:Name="CpuSpeed"/>
+                        </StackPanel>
+
+                    </TabItem>
+
+                </TabControl>
+
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>
