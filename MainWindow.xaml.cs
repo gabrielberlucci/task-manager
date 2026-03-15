@@ -11,11 +11,9 @@ using System.Windows.Shapes;
 using System.Diagnostics;
 using System.Windows.Threading;
 using Microsoft.Win32;
-
+using System.Management;
 
 namespace TaskManager;
-
-
 
 /// <summary>
 /// Interaction logic for MainWindow.xaml
@@ -72,8 +70,13 @@ public partial class MainWindow : Window
 
     public void GetCpuName()
     {
-        string rk = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0")!.GetValue("ProcessorNameString")!.ToString()!;
-        CpuName.Text = rk;
+        ManagementObjectSearcher searcher = new("SELECT * FROM Win32_Processor");
+        ManagementObjectCollection cpuCollection = searcher.Get();
+
+        foreach (ManagementObject mo in cpuCollection.Cast<ManagementObject>())
+        {
+            CpuName.Text = mo["Name"].ToString();
+        }
     }
 
     public void GetCpuSpeed()
