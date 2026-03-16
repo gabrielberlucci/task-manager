@@ -11,6 +11,7 @@ using System.Windows.Shapes;
 using System.Diagnostics;
 using System.Windows.Threading;
 using System.Management;
+using System.Windows.Markup;
 
 namespace TaskManager;
 
@@ -31,6 +32,9 @@ public partial class MainWindow : Window
         GetCpuCores();
         GetCpuLogicalCores();
         GetCpuVirtualizationState();
+        GetCpuCacheL1();
+        GetCpuCacheL2();
+        GetCpuCacheL3();
 
         DispatcherTimer timer = new()
         {
@@ -89,7 +93,6 @@ public partial class MainWindow : Window
         return s;
     }
 
-
     public void GetCpuName()
     {
         CpuName.Text = GetCpuInfo("Name");
@@ -97,11 +100,8 @@ public partial class MainWindow : Window
 
     public void GetCpuCurrentSpeed()
     {
-
         CpuSpeed.Text = GetCpuInfo("CurrentClockSpeed") + " " + "MHz";
-
     }
-
 
     public void GetCpuMaxSpeed()
     {
@@ -137,5 +137,27 @@ public partial class MainWindow : Window
             VirtualizationText.Text = "Disabled";
         }
     }
-}
 
+    public void GetCpuCacheL1()
+    {
+        ManagementObjectSearcher searcher = new("SELECT * FROM Win32_CacheMemory WHERE Level = 3");
+        ManagementObjectCollection cacheCollection = searcher.Get();
+
+        foreach (ManagementObject mo in cacheCollection.Cast<ManagementObject>())
+        {
+            L1CacheText.Text = mo["MaxCacheSize"].ToString()!;
+        }
+    }
+
+    public void GetCpuCacheL2()
+    {
+        float temp = float.Parse(GetCpuInfo("L2CacheSize")) / 1024;
+        L2CacheText.Text = temp.ToString() + " " + "MB";
+    }
+
+    public void GetCpuCacheL3()
+    {
+        float temp = float.Parse(GetCpuInfo("L3CacheSize")) / 10240;
+        L3CacheText.Text = temp.ToString() + " " + "MB";
+    }
+}
