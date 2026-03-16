@@ -121,7 +121,7 @@
                         </Style>
                     </TabControl.Resources>
 
-                    <TabItem Header="💻 CPU">
+                    <TabItem Header="CPU">
                         <Grid Margin="30">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
