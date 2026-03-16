@@ -30,18 +30,9 @@ public partial class MainWindow : Window
         InitializeComponent();
         const sbyte REFRESH_RATE = 1;
         _TotalRAM = Math.Round(double.Parse(GetRAMInfo("TotalVisibleMemorySize")) / Math.Pow(1024, 2));
-        GetCpuName();
-        GetCpuCurrentSpeed();
-        GetCpuMaxSpeed();
-        GetCpuSocket();
-        GetCpuCores();
-        GetCpuLogicalCores();
-        GetCpuVirtualizationState();
+        InitializeCpuStaticInfo();
         GetCpuCacheL1();
-        GetCpuCacheL2();
-        GetCpuCacheL3();
         GetTotalRAM(_TotalRAM);
-
 
         DispatcherTimer timer = new()
         {
@@ -51,9 +42,6 @@ public partial class MainWindow : Window
         timer.Tick += GetCpuPercentage!;
         timer.Tick += GetUsedRAM!;
         timer.Start();
-
-
-
     }
 
     public void GetProcessFromSystem(object sender, EventArgs e)
@@ -86,63 +74,37 @@ public partial class MainWindow : Window
         CpuPercentage.Text = percentage.ToString() + '%';
     }
 
-    public string GetCpuInfo(string property)
+
+    public void InitializeCpuStaticInfo()
     {
         ManagementObjectSearcher searcher = new("SELECT * FROM Win32_Processor");
         ManagementObjectCollection cpuCollection = searcher.Get();
 
-        string s = "";
-
         foreach (ManagementObject mo in cpuCollection.Cast<ManagementObject>())
         {
-            s = mo[property].ToString()!;
-        }
+            CpuName.Text = mo["Name"].ToString();
+            CpuSpeed.Text = mo["CurrentClockSpeed"] + " " + "MHz";
+            float tempCpuSpeed = float.Parse(mo["MaxClockSpeed"].ToString()!) / 1000;
+            BaseSpeedText.Text = tempCpuSpeed.ToString() + " " + "GHz";
+            SocketsText.Text = mo["SocketDesignation"].ToString();
+            CoresText.Text = mo["NumberOfCores"].ToString();
+            LogicalProcText.Text = mo["NumberOfLogicalProcessors"].ToString();
 
-        return s;
-    }
+            string virtualization = mo["VirtualizationFirmwareEnabled"].ToString()!;
+            if (virtualization == "True")
+            {
+                VirtualizationText.Text = "Enabled";
+            }
+            else
+            {
+                VirtualizationText.Text = "Disabled";
+            }
 
-    public void GetCpuName()
-    {
-        CpuName.Text = GetCpuInfo("Name");
-    }
+            float l2CacheTemp = float.Parse(mo["L2CacheSize"].ToString()!) / 1024;
+            L2CacheText.Text = l2CacheTemp.ToString() + " " + "MB";
 
-    public void GetCpuCurrentSpeed()
-    {
-        CpuSpeed.Text = GetCpuInfo("CurrentClockSpeed") + " " + "MHz";
-    }
-
-    public void GetCpuMaxSpeed()
-    {
-        float temp = float.Parse(GetCpuInfo("MaxClockSpeed")) / 1000;
-        BaseSpeedText.Text = temp.ToString() + " " + "GHz";
-    }
-
-    public void GetCpuSocket()
-    {
-        SocketsText.Text = GetCpuInfo("SocketDesignation");
-    }
-
-    public void GetCpuCores()
-    {
-        CoresText.Text = GetCpuInfo("NumberOfCores");
-    }
-
-    public void GetCpuLogicalCores()
-    {
-        LogicalProcText.Text = GetCpuInfo("NumberOfLogicalProcessors");
-    }
-
-    public void GetCpuVirtualizationState()
-    {
-        string virtualization = GetCpuInfo("VirtualizationFirmwareEnabled");
-
-        if (virtualization == "True")
-        {
-            VirtualizationText.Text = "Enabled";
-        }
-        else
-        {
-            VirtualizationText.Text = "Disabled";
+            float l3CacheTemp = float.Parse(mo["L3CacheSize"].ToString()!) / 10240;
+            L3CacheText.Text = l3CacheTemp.ToString() + " " + "MB";
         }
     }
 
@@ -153,22 +115,9 @@ public partial class MainWindow : Window
 
         foreach (ManagementObject mo in cacheCollection.Cast<ManagementObject>())
         {
-            L1CacheText.Text = mo["MaxCacheSize"].ToString()!;
+            L1CacheText.Text = mo["MaxCacheSize"].ToString()! + " " + "KB";
         }
     }
-
-    public void GetCpuCacheL2()
-    {
-        float temp = float.Parse(GetCpuInfo("L2CacheSize")) / 1024;
-        L2CacheText.Text = temp.ToString() + " " + "MB";
-    }
-
-    public void GetCpuCacheL3()
-    {
-        float temp = float.Parse(GetCpuInfo("L3CacheSize")) / 10240;
-        L3CacheText.Text = temp.ToString() + " " + "MB";
-    }
-
 
     public string GetRAMInfo(string property)
     {
