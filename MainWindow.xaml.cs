@@ -21,10 +21,15 @@ namespace TaskManager;
 public partial class MainWindow : Window
 {
     private PerformanceCounter _cpuCounter = new("Processor", "% Processor Time", "_Total");
+    double _TotalRAM;
+
+
+
     public MainWindow()
     {
         InitializeComponent();
         const sbyte REFRESH_RATE = 1;
+        _TotalRAM = Math.Round(double.Parse(GetRAMInfo("TotalVisibleMemorySize")) / Math.Pow(1024, 2));
         GetCpuName();
         GetCpuCurrentSpeed();
         GetCpuMaxSpeed();
@@ -35,6 +40,8 @@ public partial class MainWindow : Window
         GetCpuCacheL1();
         GetCpuCacheL2();
         GetCpuCacheL3();
+        GetTotalRAM(_TotalRAM);
+
 
         DispatcherTimer timer = new()
         {
@@ -42,6 +49,7 @@ public partial class MainWindow : Window
         };
         timer.Tick += GetProcessFromSystem!;
         timer.Tick += GetCpuPercentage!;
+        timer.Tick += GetUsedRAM!;
         timer.Start();
 
 
@@ -159,5 +167,32 @@ public partial class MainWindow : Window
     {
         float temp = float.Parse(GetCpuInfo("L3CacheSize")) / 10240;
         L3CacheText.Text = temp.ToString() + " " + "MB";
+    }
+
+
+    public string GetRAMInfo(string property)
+    {
+        ManagementObjectSearcher searcher = new("SELECT * FROM Win32_OperatingSystem");
+        ManagementObjectCollection cpuCollection = searcher.Get();
+
+        string s = "";
+
+        foreach (ManagementObject mo in cpuCollection.Cast<ManagementObject>())
+        {
+            s = mo[property].ToString()!;
+        }
+
+        return s;
+    }
+
+    public void GetTotalRAM(double ram)
+    {
+        RamAmount.Text = ram.ToString() + " " + "GB";
+    }
+
+    public void GetUsedRAM(object sender, EventArgs e)
+    {
+        double temp = _TotalRAM - double.Parse(GetRAMInfo("FreePhysicalMemory")) / Math.Pow(1024, 2);
+        RamUsage.Text = temp.ToString("N2") + " " + "GB";
     }
 }
